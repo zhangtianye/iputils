@@ -3,14 +3,21 @@
 #
 
 # CC
+#指定gcc程序
 CC=gcc
 # Path to parent kernel include files directory
+#根内核库文件的路径
 LIBC_INCLUDE=/usr/include
 # Libraries
+#添加库
 ADDLIB=
 # Linker flags
+#链接器标识
+#静态链接库
 LDFLAG_STATIC=-Wl,-Bstatic
+#动态链接库
 LDFLAG_DYNAMIC=-Wl,-Bdynamic
+#指定加载库
 LDFLAG_CAP=-lcap
 LDFLAG_GNUTLS=-lgnutls-openssl
 LDFLAG_CRYPTO=-lcrypto
@@ -20,6 +27,7 @@ LDFLAG_SYSFS=-lsysfs
 
 #
 # Options
+#选项
 #
 
 # Capability support (with libcap) [yes|static|no]
