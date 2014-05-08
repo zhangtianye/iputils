@@ -6,7 +6,7 @@
 #指定gcc程序
 CC=gcc
 # Path to parent kernel include files directory
-#根内核库文件的路径
+#根内核库文件目录的路径
 LIBC_INCLUDE=/usr/include
 # Libraries
 #添加库
@@ -30,43 +30,60 @@ LDFLAG_SYSFS=-lsysfs
 # Options
 #选项
 #
-
+#变量定义,设置开关
 # Capability support (with libcap) [yes|static|no]
-#功能支持
+#默认添加功能支持(使用cap库)[是|静态|不]
 USE_CAP=yes
 # sysfs support (with libsysfs - deprecated) [no|yes|static]
+#默认添加sysfs的支持(使用sysfs-deprecated库)[否|是|静态]
 USE_SYSFS=no
 # IDN support (experimental) [no|yes|static]
+#默认添加综合数字网支持(实验性的)[否|是|静态]
 USE_IDN=no
 
 # Do not use getifaddrs [no|yes|static]
+#默认不使用getifaddrs函数[否|是|静态]
 WITHOUT_IFADDRS=no
 # arping default device (e.g. eth0) []
+#系统默认arping设备(例如eth0)[]
 ARPING_DEFAULT_DEVICE=
 
 # GNU TLS library for ping6 [yes|no|static]
+#默认为ping6添加TLS加密协议库[是|静态|不]
 USE_GNUTLS=yes
 # Crypto library for ping6 [shared|static]
+#默认为ping6添加crypto密码类库[共享|静态]
 USE_CRYPTO=shared
 # Resolv library for ping6 [yes|static]
+#默认为ping6添加resolv库[是|静态]
 USE_RESOLV=yes
 # ping6 source routing (deprecated by RFC5095) [no|yes|RFC3542]
+#默认ping6路由来源选择(反对使用REC5095)[不|是|REC3452]
 ENABLE_PING6_RTHDR=no
 
 # rdisc server (-r option) support [no|yes]
+#默认RDISC服务不使用-r选项[否|是]
 ENABLE_RDISC_SERVER=no
 
 # -------------------------------------
 # What a pity, all new gccs are buggy and -Werror does not work. Sigh.
 # CCOPT=-fno-strict-aliasing -Wstrict-prototypes -Wall -Werror -g
+#-Wstrict-prototypes:如果函数的声明或定义没有指出参数类型,编译器就发出警告
+#编译选项
 CCOPT=-fno-strict-aliasing -Wstrict-prototypes -Wall -g
+#优化级别
 CCOPTOPT=-O3
+#C运行库修复
 GLIBCFIX=-D_GNU_SOURCE
+#定义
 DEFINES=
+#加载库
 LDLIB=
 
+#功能库
 FUNC_LIB = $(if $(filter static,$(1)),$(LDFLAG_STATIC) $(2) $(LDFLAG_DYNAMIC),$(2))
 
+#判断是否加载TLS加密库
 # USE_GNUTLS: DEF_GNUTLS, LIB_GNUTLS
 # USE_CRYPTO: LIB_CRYPTO
 ifneq ($(USE_GNUTLS),no)
@@ -77,37 +94,44 @@ else
 endif
 
 # USE_RESOLV: LIB_RESOLV
+#resolv库参数
 LIB_RESOLV = $(call FUNC_LIB,$(USE_RESOLV),$(LDFLAG_RESOLV))
 
 # USE_CAP:  DEF_CAP, LIB_CAP
+#判断是否加载cap库
 ifneq ($(USE_CAP),no)
 	DEF_CAP = -DCAPABILITIES
 	LIB_CAP = $(call FUNC_LIB,$(USE_CAP),$(LDFLAG_CAP))
 endif
 
 # USE_SYSFS: DEF_SYSFS, LIB_SYSFS
+#判断是否加载sysfs库
 ifneq ($(USE_SYSFS),no)
 	DEF_SYSFS = -DUSE_SYSFS
 	LIB_SYSFS = $(call FUNC_LIB,$(USE_SYSFS),$(LDFLAG_SYSFS))
 endif
 
 # USE_IDN: DEF_IDN, LIB_IDN
+#判断是否加载IDN(综合数字网)库
 ifneq ($(USE_IDN),no)
 	DEF_IDN = -DUSE_IDN
 	LIB_IDN = $(call FUNC_LIB,$(USE_IDN),$(LDFLAG_IDN))
 endif
 
 # WITHOUT_IFADDRS: DEF_WITHOUT_IFADDRS
+#判断getifaddrs函数是否是默认情况
 ifneq ($(WITHOUT_IFADDRS),no)
 	DEF_WITHOUT_IFADDRS = -DWITHOUT_IFADDRS
 endif
 
 # ENABLE_RDISC_SERVER: DEF_ENABLE_RDISC_SERVER
+#判断RDISD服务器是否在默认情况下
 ifneq ($(ENABLE_RDISC_SERVER),no)
 	DEF_ENABLE_RDISC_SERVER = -DRDISC_SERVER
 endif
 
 # ENABLE_PING6_RTHDR: DEF_ENABLE_PING6_RTHDR
+#判断ping6路由选择情况是否默认情况
 ifneq ($(ENABLE_PING6_RTHDR),no)
 	DEF_ENABLE_PING6_RTHDR = -DPING6_ENABLE_RTHDR
 ifeq ($(ENABLE_PING6_RTHDR),RFC3542)
@@ -131,8 +155,10 @@ TAG:=$(shell date --date=$(TODAY) +s%Y%m%d)
 
 
 # -------------------------------------
+#指定伪命令
 .PHONY: all ninfod clean distclean man html check-kernel modules snapshot
 
+#编译所有目标
 all: $(TARGETS)
 
 %.s: %.c
@@ -141,12 +167,23 @@ all: $(TARGETS)
 	$(COMPILE.c) $< $(DEF_$(patsubst %.o,%,$@)) -o $@
 $(TARGETS): %: %.o
 	$(LINK.o) $^ $(LIB_$@) $(LDLIBS) -o $@
+#
+#COMPILE.c=$(CC)$(CFLAGS)$(CPPFLAGS) -c
+#$<依赖目标中的第一个目标名字
+#$@表示目标
+#$^所有依赖目标的集合
+#在$(patsubst %.o,%,$@)中,patsubst把目标中的变量符合后缀是.o的全部删除,DEF_ping
+#LINK.o把.o文件链接在一起的命令行,缺省值是$(CC)$(LDFLAGS)$(TARGET_ARCH)
+#
+#
 
 # -------------------------------------
 # arping
+#
 DEF_arping = $(DEF_SYSFS) $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS)
 LIB_arping = $(LIB_SYSFS) $(LIB_CAP) $(LIB_IDN)
 
+#条件语句
 ifneq ($(ARPING_DEFAULT_DEVICE),)
 DEF_arping += -DDEFAULT_DEVICE=\"$(ARPING_DEFAULT_DEVICE)\"
 endif
