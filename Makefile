@@ -14,9 +14,9 @@ ADDLIB=
 # Linker flags
 #链接器标识
 #wl命令告诉编译器将后面的参数传递给链接器
-#使用静态链接
+#指定静态链接库
 LDFLAG_STATIC=-Wl,-Bstatic
-#使用动态链接库
+#指定动态链接库
 LDFLAG_DYNAMIC=-Wl,-Bdynamic
 #指定加载库
 LDFLAG_CAP=-lcap
@@ -94,7 +94,7 @@ else
 endif
 
 # USE_RESOLV: LIB_RESOLV
-#resolv库参数
+#解析库
 LIB_RESOLV = $(call FUNC_LIB,$(USE_RESOLV),$(LDFLAG_RESOLV))
 
 # USE_CAP:  DEF_CAP, LIB_CAP
@@ -179,20 +179,23 @@ $(TARGETS): %: %.o
 
 # -------------------------------------
 # arping
-#
+#向相邻主机发送ARP请求
 DEF_arping = $(DEF_SYSFS) $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS)
 LIB_arping = $(LIB_SYSFS) $(LIB_CAP) $(LIB_IDN)
 
-#条件语句
+#条件语句,如果默认arping设备
 ifneq ($(ARPING_DEFAULT_DEVICE),)
 DEF_arping += -DDEFAULT_DEVICE=\"$(ARPING_DEFAULT_DEVICE)\"
 endif
 
+#iputils是linux环境下一些实用的网络工具的集合,包含ping,tracepath,arping,tftpd,rarpd,clocldiff,rdisc这些工具
 # clockdiff
+#clockdiff用来测算目的主机跟本地主机的时间差
 DEF_clockdiff = $(DEF_CAP)
 LIB_clockdiff = $(LIB_CAP)
 
 # ping / ping6
+#使用 ping可以测试计算机名和计算机的ip地址，验证与远程计算机的连接。ping程序由ping.c ping6.cping_common.c ping.h 文件构成
 DEF_ping_common = $(DEF_CAP) $(DEF_IDN)
 DEF_ping  = $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS)
 LIB_ping  = $(LIB_CAP) $(LIB_IDN)
@@ -205,14 +208,17 @@ ping.o ping_common.o: ping_common.h
 ping6.o: ping_common.h in6_flowlabel.h
 
 # rarpd
+#逆地址解析
 DEF_rarpd =
 LIB_rarpd =
 
 # rdisc
+#路由器发现守护程序
 DEF_rdisc = $(DEF_ENABLE_RDISC_SERVER)
 LIB_rdisc =
 
 # tracepath
+#测试IP数据报文从源主机传到目的主机的路由
 DEF_tracepath = $(DEF_IDN)
 LIB_tracepath = $(LIB_IDN)
 
@@ -225,6 +231,7 @@ DEF_traceroute6 = $(DEF_CAP) $(DEF_IDN)
 LIB_traceroute6 = $(LIB_CAP) $(LIB_IDN)
 
 # tftpd
+#简单文件传送协议(TFTP的服务端程序)
 DEF_tftpd =
 DEF_tftpsubs =
 LIB_tftpd =
@@ -235,17 +242,21 @@ tftpd.o tftpsubs.o: tftp.h
 # -------------------------------------
 # ninfod
 ninfod:
+#set  -e的作用:返回值非零,脚本立即退出
 	@set -e; \
 		if [ ! -f ninfod/Makefile ]; then \
 			cd ninfod; \
 			./configure; \
 			cd ..; \
 		fi; \
+#fi作用:结束if,then条件判断
 		$(MAKE) -C ninfod
 
 # -------------------------------------
 # modules / check-kernel are only for ancient kernels; obsolete
+#只有老式的或过时的内核时进行模块/内核检测
 check-kernel:
+#ineq的作用是判断()中的内容是否相等
 ifeq ($(KERNEL_INCLUDE),)
 	@echo "Please, set correct KERNEL_INCLUDE"; false
 else
@@ -264,6 +275,7 @@ man:
 html:
 	$(MAKE) -C doc html
 
+#删除命令
 clean:
 	@rm -f *.o $(TARGETS)
 	@$(MAKE) -C Modules clean
