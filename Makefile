@@ -13,9 +13,10 @@ LIBC_INCLUDE=/usr/include
 ADDLIB=
 # Linker flags
 #链接器标识
-#静态链接库
+#wl命令告诉编译器将后面的参数传递给链接器
+#使用静态链接
 LDFLAG_STATIC=-Wl,-Bstatic
-#动态链接库
+#使用动态链接库
 LDFLAG_DYNAMIC=-Wl,-Bdynamic
 #指定加载库
 LDFLAG_CAP=-lcap
@@ -31,6 +32,7 @@ LDFLAG_SYSFS=-lsysfs
 #
 
 # Capability support (with libcap) [yes|static|no]
+#功能支持
 USE_CAP=yes
 # sysfs support (with libsysfs - deprecated) [no|yes|static]
 USE_SYSFS=no
