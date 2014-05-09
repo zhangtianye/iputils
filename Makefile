@@ -13,17 +13,25 @@ LIBC_INCLUDE=/usr/include
 ADDLIB=
 # Linker flags
 #链接器标识
-#wl命令告诉编译器将后面的参数传递给链接器
-#指定静态链接库
+#Wl命令告诉编译器将后面的参数传递给链接器
+#-Wl,Bstatic告诉链接器使用Bstatic选项,该选项是告诉链接器,对接下来的-l选项使用静态链接
+#-Wl,Bdynamic就是告诉链接器对接下来的-l选项使用动态链接
+#指定静态链接
 LDFLAG_STATIC=-Wl,-Bstatic
-#指定动态链接库
+#指定动态链接
 LDFLAG_DYNAMIC=-Wl,-Bdynamic
 #指定加载库
+#加载cap库
 LDFLAG_CAP=-lcap
+#加载TLS加密协议库
 LDFLAG_GNUTLS=-lgnutls-openssl
+#加载crypto密码类库
 LDFLAG_CRYPTO=-lcrypto
+#加载IDN(综合数字网)库
 LDFLAG_IDN=-lidn
+#加载resolv库
 LDFLAG_RESOLV=-lresolv
+#加载sysfs库
 LDFLAG_SYSFS=-lsysfs
 
 #
@@ -80,7 +88,7 @@ DEFINES=
 #加载库
 LDLIB=
 
-#功能库
+#选择库函数
 FUNC_LIB = $(if $(filter static,$(1)),$(LDFLAG_STATIC) $(2) $(LDFLAG_DYNAMIC),$(2))
 
 #判断是否加载TLS加密库
@@ -144,11 +152,15 @@ IPV4_TARGETS=tracepath ping clockdiff rdisc arping tftpd rarpd
 IPV6_TARGETS=tracepath6 traceroute6 ping6
 TARGETS=$(IPV4_TARGETS) $(IPV6_TARGETS)
 
+#预定义C编译选项
 CFLAGS=$(CCOPTOPT) $(CCOPT) $(GLIBCFIX) $(DEFINES)
+#加载库
 LDLIBS=$(LDLIB) $(ADDLIB)
 
+#显示节点名称
 UNAME_N:=$(shell uname -n)
 LASTTAG:=$(shell git describe HEAD | sed -e 's/-.*//')
+#显示时间
 TODAY=$(shell date +%Y/%m/%d)
 DATE=$(shell date --date $(TODAY) +%Y%m%d)
 TAG:=$(shell date --date=$(TODAY) +s%Y%m%d)
@@ -178,6 +190,7 @@ $(TARGETS): %: %.o
 #
 
 # -------------------------------------
+#iputils软件包(linux下一些网络工具,包含ping,tracepath,arping,tftpd,rarpd,clocldiff,rdisc)
 # arping
 #向相邻主机发送ARP请求
 DEF_arping = $(DEF_SYSFS) $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS)
@@ -188,7 +201,6 @@ ifneq ($(ARPING_DEFAULT_DEVICE),)
 DEF_arping += -DDEFAULT_DEVICE=\"$(ARPING_DEFAULT_DEVICE)\"
 endif
 
-#iputils是linux环境下一些实用的网络工具的集合,包含ping,tracepath,arping,tftpd,rarpd,clocldiff,rdisc这些工具
 # clockdiff
 #clockdiff用来测算目的主机跟本地主机的时间差
 DEF_clockdiff = $(DEF_CAP)
@@ -265,6 +277,7 @@ else
 		echo "Please, set correct KERNEL_INCLUDE"; false; fi
 endif
 
+#模块/内核检测
 modules: check-kernel
 	$(MAKE) KERNEL_INCLUDE=$(KERNEL_INCLUDE) -C Modules
 
@@ -292,6 +305,7 @@ distclean: clean
 		fi
 
 # -------------------------------------
+#快照
 snapshot:
 	@if [ x"$(UNAME_N)" != x"pleiades" ]; then echo "Not authorized to advance snapshot"; exit 1; fi
 	@echo "[$(TAG)]" > RELNOTES.NEW
